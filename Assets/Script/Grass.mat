@@ -111,8 +111,11 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _Height: 5
     - _Metallic: 0
     - _OcclusionStrength: 1
+    - _P1Offset: 0
+    - _P2Offset: 0
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
@@ -122,6 +125,7 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _TopOffset: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

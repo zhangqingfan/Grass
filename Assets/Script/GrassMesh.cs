@@ -55,9 +55,10 @@ public class GrassMesh : MonoBehaviour
         var colors = new Color[verticesNum];
         for (int i = 0; i < verticesNum - 1; i++)
         {
-            var r = (i % 2 == 0) ? 1 : 0; //1:left, 0:right, 0.5:middle
-            var g = (float)((int)(i / 2) / (segment + 1)); //height proportion
+            var r = (i % 2 == 0) ? 0 : 1; //0:left, 1:right, 0.5:middle
+            var g = (float)((int)(i / 2) / (float)(segment + 1)); //height proportion
             colors[i] = new Color(r, g, 0, 0);
+            //Debug.Log(colors[i]);
         }
         colors[verticesNum - 1] = new Color(0.5f, 1, 0, 0);
 
