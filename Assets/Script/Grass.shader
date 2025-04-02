@@ -4,9 +4,9 @@
     {
         _Height("Height", Range(1, 5)) = 1
         _TopOffset("TopOffset", Range(-5, 5)) = 0
-        _P1Offset("P1Offset", Range(0, 5)) = 0.5
-        _P2Offset("P2Offset", Range(0, 5)) = 0.5
-        _Taper("Taper", Range(0, 5)) = 1
+        _P1Offset("P1Offset", Range(-5, 5)) = 0.5
+        _P2Offset("P2Offset", Range(-5, 5)) = 0.5
+        _Taper("Taper", Range(1, 5)) = 1
     }
     SubShader
     {
@@ -73,9 +73,7 @@
             {
                 v2f o;
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
-                float x = abs(v.vertex.x) * v.color.g * _Taper; //todo...这里有BUG!!
-                float sign = v.color.r * 2 - 1;
-                centerPoint += float3(sign * x, 0, 0);
+                centerPoint.x += (v.vertex.x * (1 - v.color.g) * _Taper);
                 o.vertex = TransformObjectToHClip(centerPoint); 
                 o.uv = v.uv;
                 return o;
