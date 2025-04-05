@@ -36,6 +36,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 2800000, guid: eca0149d3cd5a4646897c12299a13b28, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -58,6 +62,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Gloss:
+        m_Texture: {fileID: 2800000, guid: 811ac1e0399068a49be1cf6ea4ea19c7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -114,8 +122,8 @@ Material:
     - _Height: 5
     - _Metallic: 0
     - _OcclusionStrength: 1
-    - _P1Offset: 0
-    - _P2Offset: 0
+    - _P1Offset: -2.7
+    - _P2Offset: -0.8
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
@@ -125,7 +133,8 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _TopOffset: 0
+    - _Taper: 2.44
+    - _TopOffset: 0.3
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
