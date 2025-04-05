@@ -55,8 +55,8 @@ public class GrassMesh : MonoBehaviour
         var colors = new Color[verticesNum];
         for (int i = 0; i < verticesNum - 1; i++)
         {
-            var r = (i % 2 == 0) ? 0 : 1; //0:left, 1:right, 0.5:middle
-            var g = (float)((int)(i / 2) / (float)(segment + 1)); //height proportion
+            var r = (i % 2 == 0) ? 0 : 1; //r: 0:left, 1:right, 0.5:middle
+            var g = (float)((int)(i / 2) / (float)(segment + 1)); //g: height proportion
             colors[i] = new Color(r, g, 0, 0);
             //Debug.Log(colors[i]);
         }
@@ -65,9 +65,11 @@ public class GrassMesh : MonoBehaviour
         var uvs = new Vector2[verticesNum];
         for (int i = 0; i < verticesNum; i++)
         {
-            //todo...
-            uvs[i] = new Vector2(0.5f, 0.5f);
+            var u = (colors[i].r == 0) ? 0.45f : 0.55f;
+            u += ((0.5f - u) * colors[i].g);
+            uvs[i] = new Vector2(u, colors[i].g); 
         }
+        uvs[verticesNum - 1] = new Vector2(0.5f, 0.95f);
 
         Mesh mesh = new Mesh();
         mesh.vertices = vertices;

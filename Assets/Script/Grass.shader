@@ -111,7 +111,7 @@
                 InitializeBRDFData(albedo, 0, float3(1,1,1), gloss, alpha, brdfdata);
 
 
-                half4 col = half4(1, 1, 1, 1);
+                half4 col = _Albedo.Sample(sampler_Albedo, i.uv);
                 return col;
             }
             ENDHLSL
