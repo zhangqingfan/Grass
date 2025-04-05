@@ -23,6 +23,9 @@
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOWS_SOFT
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Bezier.hlsl"
@@ -99,20 +102,20 @@
             {   
                 Light mainLight = GetMainLight(TransformWorldToShadowCoord(i.worldPos));
 
-                //bug...todo...
                 float3 n = isFrontFace ? normalize(i.normal) : -reflect(-normalize(i.normal), normalize(i.normal));
                 float3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
 
                 float3 albedo = saturate(_Albedo.Sample(sampler_Albedo, i.uv));
                 float gloss = (1 - _Gloss.Sample(sampler_Gloss, i.uv).r) * 0.2;
+                half3 GI = SampleSH(n);
 
                 BRDFData brdfdata;
                 float alpha = 1;
                 InitializeBRDFData(albedo, 0, float3(1,1,1), gloss, alpha, brdfdata);
+                float3 brdf = DirectBRDF(brdfdata, n, mainLight.direction, v) * mainLight.color;
 
-
-                half4 col = _Albedo.Sample(sampler_Albedo, i.uv);
-                return col;
+                float3 col = GI * albedo + brdf * (mainLight.shadowAttenuation * mainLight.distanceAttenuation);
+                return float4(col.xyz, 1);
             }
             ENDHLSL
         }

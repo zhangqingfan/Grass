@@ -18,7 +18,7 @@ public class GrassMesh : MonoBehaviour
 
     public Material mat;
 
-    void Start()
+    void Awake()
     {
         var verticesNum = (segment + 1) * 2 + 1;
         var vertices = new Vector3[verticesNum];

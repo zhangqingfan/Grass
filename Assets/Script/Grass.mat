@@ -122,7 +122,7 @@ Material:
     - _Height: 5
     - _Metallic: 0
     - _OcclusionStrength: 1
-    - _P1Offset: -2.7
+    - _P1Offset: -1.6
     - _P2Offset: -0.8
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -133,8 +133,8 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _Taper: 2.44
-    - _TopOffset: 0.3
+    - _Taper: 2.68
+    - _TopOffset: 1.6
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
