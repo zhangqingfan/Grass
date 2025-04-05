@@ -7,6 +7,8 @@
         _P1Offset("P1Offset", Range(-5, 5)) = 0.5
         _P2Offset("P2Offset", Range(-5, 5)) = 0.5
         _Taper("Taper", Range(1, 5)) = 1
+        _Albedo("Albedo", 2D) = "white"{}
+        _Gloss("Gloss", 2D) = "white"{}
     }
     SubShader
     {
@@ -22,6 +24,7 @@
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Bezier.hlsl"
 
             float _Height;
@@ -29,6 +32,10 @@
             float _P1Offset;
             float _P2Offset;
             float _Taper;
+            TEXTURE2D(_Gloss);
+            SAMPLER(sampler_Gloss);
+            TEXTURE2D(_Albedo);
+            SAMPLER(sampler_Albedo);
 
             float3 GetP0()
             {
@@ -65,22 +72,45 @@
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
+                float3 normal : TEXCOORD0;
+                float3 worldPos: TEXCOORD1;
+                float2 uv : TEXCOORD2;
                 float4 vertex : SV_POSITION;
             };
 
             v2f vert (appdata v)
             {
                 v2f o;
+                
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
                 centerPoint.x += (v.vertex.x * (1 - v.color.g) * _Taper);
                 o.vertex = TransformObjectToHClip(centerPoint); 
+                
+                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
+                float3 normal = normalize(cross(tangent, float3(1,0,0)));
+                o.normal = TransformObjectToWorldNormal(normal);
+
+                o.worldPos = TransformObjectToWorld(v.vertex);
                 o.uv = v.uv;
                 return o;
             }
 
-            half4 frag (v2f i) : SV_Target
+            half4 frag (v2f i, bool isFrontFace : SV_IsFrontFace) : SV_Target
             {   
+                Light mainLight = GetMainLight(TransformWorldToShadowCoord(i.worldPos));
+
+                //bug...todo...
+                float3 n = isFrontFace ? normalize(i.normal) : -reflect(-normalize(i.normal), normalize(i.normal));
+                float3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
+
+                float3 albedo = saturate(_Albedo.Sample(sampler_Albedo, i.uv));
+                float gloss = (1 - _Gloss.Sample(sampler_Gloss, i.uv).r) * 0.2;
+
+                BRDFData brdfdata;
+                float alpha = 1;
+                InitializeBRDFData(albedo, 0, float3(1,1,1), gloss, alpha, brdfdata);
+
+
                 half4 col = half4(1, 1, 1, 1);
                 return col;
             }
