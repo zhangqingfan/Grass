@@ -3,7 +3,7 @@ using UnityEngine;
 
 struct GrassPosition
 {
-    float3 pos;
+    public float3 pos;
 };
 
 public class GrassGenerator : MonoBehaviour
@@ -20,6 +20,8 @@ public class GrassGenerator : MonoBehaviour
     ComputeBuffer argsBuffer;
     Bounds bounds;
     Mesh grassMesh;
+
+    ComputeBuffer debugBuffer;
 
     int range = 5;
     float spacing = 1f;
@@ -57,12 +59,11 @@ public class GrassGenerator : MonoBehaviour
     private void LateUpdate()
     {
         ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int));
-        Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+        //Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
 
-        var results = new GrassPosition[20];
-        worldPosBuffer.GetData(results);
-
-        Debug.Log(results);
+        //var results = new GrassPosition[1000];
+        //debugBuffer.GetData(results);
+        //Debug.Log(results[0]);
     }
 
     void CreateComputerBufferFromMesh(Mesh mesh)
@@ -84,6 +85,9 @@ public class GrassGenerator : MonoBehaviour
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
 
         Shader.SetGlobalBuffer("worldPosBuffer", worldPosBuffer);
+
+        debugBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int));
+        Shader.SetGlobalBuffer("debugBuffer", debugBuffer);
     }
         
     void OnDestroy()
@@ -94,5 +98,6 @@ public class GrassGenerator : MonoBehaviour
         colorBuffer.Release();
         positionBuffer.Release();
         argsBuffer.Release();
+        debugBuffer.Release();
     }
 }

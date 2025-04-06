@@ -686,7 +686,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   height: 2
   width: 0.3
-  segment: 5
+  segment: 1
   mat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
 --- !u!23 &1788075192
 MeshRenderer:

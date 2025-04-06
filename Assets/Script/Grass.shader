@@ -40,6 +40,8 @@
             StructuredBuffer<float2> uvBuffer;
             StructuredBuffer<float4> colorBuffer;
             StructuredBuffer<int> triangleBuffer;
+
+            RWStructuredBuffer<int> debugBuffer;
             
             float _Height;
             float _TopOffset;
@@ -101,10 +103,17 @@
                 float2 uv = uvBuffer[index];
                 float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
                 
-                //grassWorldPos = worldPosBuffer[0].pos;
+                grassWorldPos = float3(0, 0, 0);//worldPosBuffer[0].pos;
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
-                centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
-                o.vertex = TransformWorldToHClip(centerPoint + grassWorldPos); 
+                //centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
+                float offsetX = color.r * 2 - 1;
+                centerPoint.x += offsetX * 0.8;
+
+                if(offsetX = 0)
+                   centerPoint.x = 10;
+
+
+                o.vertex = TransformObjectToHClip(centerPoint); 
                 
                 float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
