@@ -30,6 +30,17 @@
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Bezier.hlsl"
 
+            struct GrassPosition
+            {
+                float3 pos;
+            };
+
+            StructuredBuffer<GrassPosition> worldPosBuffer;
+            StructuredBuffer<float3> vertexBuffer;
+            StructuredBuffer<float2> uvBuffer;
+            StructuredBuffer<float4> colorBuffer;
+            StructuredBuffer<int> triangleBuffer;
+            
             float _Height;
             float _TopOffset;
             float _P1Offset;
@@ -68,9 +79,8 @@
 
             struct appdata
             {
-                float4 vertex : POSITION;
-                float4 color: COLOR;
-                float2 uv : TEXCOORD0;
+                uint vertexID : SV_VertexID;
+                uint instanceID : SV_InstanceID;
             };
 
             struct v2f
@@ -84,17 +94,23 @@
             v2f vert (appdata v)
             {
                 v2f o;
+
+                int index = triangleBuffer[v.vertexID];
+                float3 vertex = vertexBuffer[index];
+                float4 color = colorBuffer[index];
+                float2 uv = uvBuffer[index];
+                float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
                 
-                float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
-                centerPoint.x += (v.vertex.x * (1 - v.color.g) * _Taper);
-                o.vertex = TransformObjectToHClip(centerPoint); 
+                float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
+                centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
+                o.vertex = TransformWorldToHClip(centerPoint + grassWorldPos); 
                 
-                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
+                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
-
-                o.worldPos = TransformObjectToWorld(v.vertex);
-                o.uv = v.uv;
+                
+                o.worldPos = centerPoint + grassWorldPos;
+                o.uv = uv;
                 return o;
             }
 

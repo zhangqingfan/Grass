@@ -16,6 +16,7 @@ public class GrassMesh : MonoBehaviour
     [Range(1, 5)]
     public int segment = 1; //not include top point.
 
+    public static Mesh staticMesh;
     public Material mat;
 
     void Awake()
@@ -76,6 +77,12 @@ public class GrassMesh : MonoBehaviour
         mesh.triangles = triangles;
         mesh.uv = uvs;
         mesh.colors = colors;
+
+        staticMesh = new Mesh();
+        staticMesh.vertices = vertices;
+        staticMesh.triangles = triangles;
+        staticMesh.uv = uvs;
+        staticMesh.colors = colors;
 
         var mf = gameObject.GetComponent<MeshFilter>();
         mf.mesh = mesh;
