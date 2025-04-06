@@ -101,6 +101,7 @@
                 float2 uv = uvBuffer[index];
                 float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
                 
+                //grassWorldPos = worldPosBuffer[0].pos;
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
                 o.vertex = TransformWorldToHClip(centerPoint + grassWorldPos); 
