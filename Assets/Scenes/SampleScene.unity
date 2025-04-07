@@ -438,14 +438,13 @@ GameObject:
   - component: {fileID: 853222352}
   - component: {fileID: 853222351}
   - component: {fileID: 853222350}
-  - component: {fileID: 853222354}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &853222350
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -532,21 +531,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &853222354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 853222349}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97608ee9e2f424347a8199c245a02623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  computeShader: {fileID: 7200000, guid: 8105394ecbb5ee442a6cf63495bbaad3, type: 3}
-  renderCamera: {fileID: 0}
-  mat: {fileID: 0}
 --- !u!1 &1646006027
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,7 +648,8 @@ GameObject:
   - component: {fileID: 1788075194}
   - component: {fileID: 1788075193}
   - component: {fileID: 1788075192}
-  - component: {fileID: 1788075191}
+  - component: {fileID: 1788075196}
+  - component: {fileID: 1788075195}
   m_Layer: 0
   m_Name: Grass
   m_TagString: Untagged
@@ -672,22 +657,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1788075191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1788075190}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5472533dcdedc1840a516d50124be001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  height: 2
-  width: 0.3
-  segment: 1
-  mat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
 --- !u!23 &1788075192
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -753,6 +722,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1788075195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788075190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5472533dcdedc1840a516d50124be001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  height: 1
+  width: 0.3
+  segment: 1
+  mesh: {fileID: 0}
+--- !u!114 &1788075196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788075190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97608ee9e2f424347a8199c245a02623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  computeShader: {fileID: 7200000, guid: 8105394ecbb5ee442a6cf63495bbaad3, type: 3}
+  renderCamera: {fileID: 0}
+  mat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

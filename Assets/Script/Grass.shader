@@ -83,6 +83,7 @@
             {
                 uint vertexID : SV_VertexID;
                 uint instanceID : SV_InstanceID;
+                //float4 vertex : POSITION;
             };
 
             struct v2f
@@ -102,24 +103,17 @@
                 float4 color = colorBuffer[index];
                 float2 uv = uvBuffer[index];
                 float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
+                //grassWorldPos = float3(0,0,0);
                 
-                grassWorldPos = float3(0, 0, 0);//worldPosBuffer[0].pos;
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
-                //centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
-                float offsetX = color.r * 2 - 1;
-                centerPoint.x += offsetX * 0.8;
-
-                if(offsetX = 0)
-                   centerPoint.x = 10;
-
-
-                o.vertex = TransformObjectToHClip(centerPoint); 
+                centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
+                o.vertex = TransformWorldToHClip(grassWorldPos + centerPoint); 
                 
                 float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
                 
-                o.worldPos = centerPoint + grassWorldPos;
+                o.worldPos = centerPoint + grassWorldPos; //check!!
                 o.uv = uv;
                 return o;
             }
@@ -142,6 +136,7 @@
 
                 float3 col = GI * albedo + brdf * (mainLight.shadowAttenuation * mainLight.distanceAttenuation);
                 return float4(col.xyz, 1);
+
             }
             ENDHLSL
         }

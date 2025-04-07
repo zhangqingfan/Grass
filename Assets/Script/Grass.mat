@@ -134,7 +134,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _Taper: 2.25
-    - _TopOffset: 0.9
+    - _TopOffset: -0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

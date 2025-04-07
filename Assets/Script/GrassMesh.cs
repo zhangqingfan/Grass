@@ -1,10 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEngine.Rendering.HableCurve;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GrassMesh : MonoBehaviour
 {
     [Range(1f, 2f)]
@@ -16,10 +13,18 @@ public class GrassMesh : MonoBehaviour
     [Range(1, 5)]
     public int segment = 1; //not include top point.
 
-    public static Mesh staticMesh;
-    public Material mat;
+    [HideInInspector]
+    public Mesh mesh;
+    public static GrassMesh Instance => grassMesh;
+    static GrassMesh grassMesh;
 
-    void Awake()
+    private void Awake()
+    {
+        grassMesh = this;
+        CreateMesh();
+    }
+
+    void CreateMesh()
     {
         var verticesNum = (segment + 1) * 2 + 1;
         var vertices = new Vector3[verticesNum];
@@ -72,21 +77,10 @@ public class GrassMesh : MonoBehaviour
         }
         uvs[verticesNum - 1] = new Vector2(0.5f, 0.95f);
 
-        Mesh mesh = new Mesh();
+        mesh = new Mesh();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.uv = uvs;
         mesh.colors = colors;
-
-        staticMesh = new Mesh();
-        staticMesh.vertices = vertices;
-        staticMesh.triangles = triangles;
-        staticMesh.uv = uvs;
-        staticMesh.colors = colors;
-
-        var mf = gameObject.GetComponent<MeshFilter>();
-        mf.mesh = mesh;
-        var mr = gameObject.GetComponent<MeshRenderer>();
-        mr.material = mat;
     }
 }

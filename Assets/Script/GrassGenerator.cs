@@ -19,12 +19,11 @@ public class GrassGenerator : MonoBehaviour
     ComputeBuffer colorBuffer;
     ComputeBuffer argsBuffer;
     Bounds bounds;
-    Mesh grassMesh;
 
     ComputeBuffer debugBuffer;
 
-    int range = 5;
-    float spacing = 1f;
+    int range = 100;
+    float spacing = 0.5f;
 
     readonly int rangeID = Shader.PropertyToID("_Range");
     readonly int spacingID = Shader.PropertyToID("_Spacing");
@@ -34,36 +33,20 @@ public class GrassGenerator : MonoBehaviour
     {
         worldPosBuffer = new ComputeBuffer(range * range, sizeof(float) * 3, ComputeBufferType.Append);
         worldPosBuffer.SetCounterValue(0);
-        
+        debugBuffer = new ComputeBuffer(range * range, sizeof(float) * 3, ComputeBufferType.Append);
+
+
         bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
         argsBuffer = new ComputeBuffer(1, sizeof(int) * 4, ComputeBufferType.IndirectArguments);
+        
+        CreateComputerBufferFromMesh(GrassMesh.Instance.mesh);
 
-        var go = GameObject.Find("Grass");
-        grassMesh = go.GetComponent<MeshFilter>().mesh;
-        CreateComputerBufferFromMesh(GrassMesh.staticMesh); //todo...bug!!
-    }
-
-    private void Update()
-    {
-        worldPosBuffer.SetCounterValue(0);
-
-        computeShader.SetInt(rangeID, range);
-        computeShader.SetFloat(spacingID, spacing);
-        computeShader.SetBuffer(0, worldPosBufferID, worldPosBuffer);
-
-        var threadCountX = Mathf.CeilToInt(range / 8f);
-        var threadCountZ = Mathf.CeilToInt(range / 8f);
-        computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
-    }
-
-    private void LateUpdate()
-    {
-        ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int));
-        //Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
-
-        //var results = new GrassPosition[1000];
-        //debugBuffer.GetData(results);
-        //Debug.Log(results[0]);
+        /*
+        var mf = gameObject.GetComponent<MeshFilter>();
+        mf.mesh = GrassMesh.Instance.mesh;
+        var mr = gameObject.GetComponent<MeshRenderer>();
+        mr.material = mat;
+        */   
     }
 
     void CreateComputerBufferFromMesh(Mesh mesh)
@@ -84,12 +67,32 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer.SetData(mesh.vertices);
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
 
-        Shader.SetGlobalBuffer("worldPosBuffer", worldPosBuffer);
-
-        debugBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int));
-        Shader.SetGlobalBuffer("debugBuffer", debugBuffer);
+        mat.SetBuffer("worldPosBuffer", worldPosBuffer);
     }
-        
+
+    private void Update()
+    {
+        worldPosBuffer.SetCounterValue(0);
+
+        computeShader.SetInt(rangeID, range);
+        computeShader.SetFloat(spacingID, spacing);
+        computeShader.SetBuffer(0, worldPosBufferID, worldPosBuffer);
+
+        var threadCountX = Mathf.CeilToInt(range / 8f);
+        var threadCountZ = Mathf.CeilToInt(range / 8f);
+        computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
+    }
+
+    private void LateUpdate()
+    {
+        var args = new int[] { GrassMesh.Instance.mesh.triangles.Length, range * range, 0, 0 };
+        argsBuffer.SetData(args);
+
+        //return;
+        //ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int));
+        Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+    }
+
     void OnDestroy()
     {
         worldPosBuffer.Release();
@@ -98,6 +101,7 @@ public class GrassGenerator : MonoBehaviour
         colorBuffer.Release();
         positionBuffer.Release();
         argsBuffer.Release();
-        debugBuffer.Release();
+
+        if (debugBuffer != null) debugBuffer.Release();
     }
 }
