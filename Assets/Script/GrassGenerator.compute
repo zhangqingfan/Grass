@@ -8,18 +8,34 @@ struct GrassPosition
 
 uint _Range;
 float _Spacing;
+float4x4 _VP_MATRIX;
 
 AppendStructuredBuffer<GrassPosition> worldPosBuffer;
+
+bool CameraCull(float3 worldPos)
+{
+    float4 clipPos = mul(_VP_MATRIX, float4(worldPos.xyz, 1));
+    if (0 < clipPos.z && clipPos.z < clipPos.w &&
+       -clipPos.w < clipPos.x && clipPos.x < clipPos.w &&
+       -clipPos.w < clipPos.y && clipPos.y < clipPos.w)
+    {
+        return false;
+    }
+    return true;
+}
+
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    if(id.x <= _Range && id.y <= _Range)
+    if(id.x < _Range && id.y < _Range)
     {
         float3 position = float3(id.x, 0, id.y) * _Spacing;
-       
-        GrassPosition gp;
-        gp.pos = position;
-        worldPosBuffer.Append(gp);
+        if (CameraCull(position) == false)
+        {
+            GrassPosition gp;
+            gp.pos = position;
+            worldPosBuffer.Append(gp);            
+        }
     }
 }

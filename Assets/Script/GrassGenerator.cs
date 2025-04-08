@@ -1,11 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-struct GrassPosition
-{
-    public float3 pos;
-};
-
 public class GrassGenerator : MonoBehaviour
 {
     public ComputeShader computeShader;
@@ -28,13 +23,13 @@ public class GrassGenerator : MonoBehaviour
     readonly int rangeID = Shader.PropertyToID("_Range");
     readonly int spacingID = Shader.PropertyToID("_Spacing");
     readonly int worldPosBufferID = Shader.PropertyToID("worldPosBuffer");
+    readonly int vpMatrixID = Shader.PropertyToID("_VP_MATRIX");
 
     void Start()
     {
         worldPosBuffer = new ComputeBuffer(range * range, sizeof(float) * 3, ComputeBufferType.Append);
         worldPosBuffer.SetCounterValue(0);
         debugBuffer = new ComputeBuffer(range * range, sizeof(float) * 3, ComputeBufferType.Append);
-
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
         argsBuffer = new ComputeBuffer(1, sizeof(int) * 4, ComputeBufferType.IndirectArguments);
@@ -78,18 +73,24 @@ public class GrassGenerator : MonoBehaviour
         computeShader.SetFloat(spacingID, spacing);
         computeShader.SetBuffer(0, worldPosBufferID, worldPosBuffer);
 
+        var pMatrix = GL.GetGPUProjectionMatrix(renderCamera.projectionMatrix, false);
+        var vpMatrix = pMatrix * renderCamera.worldToCameraMatrix;
+        computeShader.SetMatrix(vpMatrixID, vpMatrix);
+
         var threadCountX = Mathf.CeilToInt(range / 8f);
         var threadCountZ = Mathf.CeilToInt(range / 8f);
         computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
     }
 
+    int[] args = new int[4];
     private void LateUpdate()
     {
-        var args = new int[] { GrassMesh.Instance.mesh.triangles.Length, range * range, 0, 0 };
+        args[0] = GrassMesh.Instance.mesh.triangles.Length;
+        args[1] = range * range;
+        args[2] = 0;
+        args[3] = 0;
         argsBuffer.SetData(args);
 
-        //return;
-        //ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int));
         Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
     }
 
