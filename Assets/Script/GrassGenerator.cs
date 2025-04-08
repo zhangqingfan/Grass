@@ -86,10 +86,11 @@ public class GrassGenerator : MonoBehaviour
     private void LateUpdate()
     {
         args[0] = GrassMesh.Instance.mesh.triangles.Length;
-        args[1] = range * range;
+        args[1] = 0;
         args[2] = 0;
         args[3] = 0;
         argsBuffer.SetData(args);
+        ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int)); //must update worldPosbuffer count in every frame!!! 
 
         Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
     }
