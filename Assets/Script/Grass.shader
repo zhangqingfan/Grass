@@ -23,10 +23,26 @@
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOWS_SOFT
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Bezier.hlsl"
 
+            struct GrassPosition
+            {
+                float3 pos;
+            };
+
+            StructuredBuffer<GrassPosition> worldPosBuffer;
+            StructuredBuffer<float3> vertexBuffer;
+            StructuredBuffer<float2> uvBuffer;
+            StructuredBuffer<float4> colorBuffer;
+            StructuredBuffer<int> triangleBuffer;
+
+            RWStructuredBuffer<int> debugBuffer;
+            
             float _Height;
             float _TopOffset;
             float _P1Offset;
@@ -65,9 +81,9 @@
 
             struct appdata
             {
-                float4 vertex : POSITION;
-                float4 color: COLOR;
-                float2 uv : TEXCOORD0;
+                uint vertexID : SV_VertexID;
+                uint instanceID : SV_InstanceID;
+                //float4 vertex : POSITION;
             };
 
             struct v2f
@@ -81,17 +97,24 @@
             v2f vert (appdata v)
             {
                 v2f o;
+
+                int index = triangleBuffer[v.vertexID];
+                float3 vertex = vertexBuffer[index];
+                float4 color = colorBuffer[index];
+                float2 uv = uvBuffer[index];
+                float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
+                //grassWorldPos = float3(0,0,0);
                 
-                float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
-                centerPoint.x += (v.vertex.x * (1 - v.color.g) * _Taper);
-                o.vertex = TransformObjectToHClip(centerPoint); 
+                float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
+                centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
+                o.vertex = TransformWorldToHClip(grassWorldPos + centerPoint); 
                 
-                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), v.color.g);
+                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
-
-                o.worldPos = TransformObjectToWorld(v.vertex);
-                o.uv = v.uv;
+                
+                o.worldPos = centerPoint + grassWorldPos; //check!!
+                o.uv = uv;
                 return o;
             }
 
@@ -99,20 +122,21 @@
             {   
                 Light mainLight = GetMainLight(TransformWorldToShadowCoord(i.worldPos));
 
-                //bug...todo...
                 float3 n = isFrontFace ? normalize(i.normal) : -reflect(-normalize(i.normal), normalize(i.normal));
                 float3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
 
                 float3 albedo = saturate(_Albedo.Sample(sampler_Albedo, i.uv));
                 float gloss = (1 - _Gloss.Sample(sampler_Gloss, i.uv).r) * 0.2;
+                half3 GI = SampleSH(n);
 
                 BRDFData brdfdata;
                 float alpha = 1;
                 InitializeBRDFData(albedo, 0, float3(1,1,1), gloss, alpha, brdfdata);
+                float3 brdf = DirectBRDF(brdfdata, n, mainLight.direction, v) * mainLight.color;
 
+                float3 col = GI * albedo + brdf * (mainLight.shadowAttenuation * mainLight.distanceAttenuation);
+                return float4(col.xyz, 1);
 
-                half4 col = half4(1, 1, 1, 1);
-                return col;
             }
             ENDHLSL
         }

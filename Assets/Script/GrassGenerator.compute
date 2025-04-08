@@ -9,7 +9,7 @@ struct GrassPosition
 uint _Range;
 float _Spacing;
 
-AppendStructuredBuffer<GrassPosition> Grasses;
+AppendStructuredBuffer<GrassPosition> worldPosBuffer;
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -17,8 +17,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     if(id.x <= _Range && id.y <= _Range)
     {
         float3 position = float3(id.x, 0, id.y) * _Spacing;
+       
         GrassPosition gp;
         gp.pos = position;
-        Grasses.Append(gp);
+        worldPosBuffer.Append(gp);
     }
 }

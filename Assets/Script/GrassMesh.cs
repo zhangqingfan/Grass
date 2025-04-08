@@ -1,10 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEngine.Rendering.HableCurve;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GrassMesh : MonoBehaviour
 {
     [Range(1f, 2f)]
@@ -16,9 +13,18 @@ public class GrassMesh : MonoBehaviour
     [Range(1, 5)]
     public int segment = 1; //not include top point.
 
-    public Material mat;
+    [HideInInspector]
+    public Mesh mesh;
+    public static GrassMesh Instance => grassMesh;
+    static GrassMesh grassMesh;
 
-    void Start()
+    private void Awake()
+    {
+        grassMesh = this;
+        CreateMesh();
+    }
+
+    void CreateMesh()
     {
         var verticesNum = (segment + 1) * 2 + 1;
         var vertices = new Vector3[verticesNum];
@@ -55,8 +61,8 @@ public class GrassMesh : MonoBehaviour
         var colors = new Color[verticesNum];
         for (int i = 0; i < verticesNum - 1; i++)
         {
-            var r = (i % 2 == 0) ? 0 : 1; //0:left, 1:right, 0.5:middle
-            var g = (float)((int)(i / 2) / (float)(segment + 1)); //height proportion
+            var r = (i % 2 == 0) ? 0 : 1; //r: 0:left, 1:right, 0.5:middle
+            var g = (float)((int)(i / 2) / (float)(segment + 1)); //g: height proportion
             colors[i] = new Color(r, g, 0, 0);
             //Debug.Log(colors[i]);
         }
@@ -65,19 +71,16 @@ public class GrassMesh : MonoBehaviour
         var uvs = new Vector2[verticesNum];
         for (int i = 0; i < verticesNum; i++)
         {
-            //todo...
-            uvs[i] = new Vector2(0.5f, 0.5f);
+            var u = (colors[i].r == 0) ? 0.45f : 0.55f;
+            u += ((0.5f - u) * colors[i].g);
+            uvs[i] = new Vector2(u, colors[i].g); 
         }
+        uvs[verticesNum - 1] = new Vector2(0.5f, 0.95f);
 
-        Mesh mesh = new Mesh();
+        mesh = new Mesh();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.uv = uvs;
         mesh.colors = colors;
-
-        var mf = gameObject.GetComponent<MeshFilter>();
-        mf.mesh = mesh;
-        var mr = gameObject.GetComponent<MeshRenderer>();
-        mr.material = mat;
     }
 }
