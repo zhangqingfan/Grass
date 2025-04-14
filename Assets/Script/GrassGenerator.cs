@@ -1,12 +1,16 @@
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GrassGenerator : MonoBehaviour
 {
     public ComputeShader computeShader;
     public Camera renderCamera;
-    public Material mat;
-    
+    public Material grassMat;
+    public Material VoronoiMat;
+    public int2 voronoiRTSize;
+    private RenderTexture voronoiRT;
+
     ComputeBuffer worldPosBuffer;
     ComputeBuffer triangleBuffer;
     ComputeBuffer uvBuffer;
@@ -35,13 +39,23 @@ public class GrassGenerator : MonoBehaviour
         argsBuffer = new ComputeBuffer(1, sizeof(int) * 4, ComputeBufferType.IndirectArguments);
         
         CreateComputerBufferFromMesh(GrassMesh.Instance.mesh);
-
+        CreateVoronoiRT(voronoiRTSize.x, voronoiRTSize.y);
         /*
         var mf = gameObject.GetComponent<MeshFilter>();
         mf.mesh = GrassMesh.Instance.mesh;
         var mr = gameObject.GetComponent<MeshRenderer>();
         mr.material = mat;
-        */   
+        */
+    }
+
+    void CreateVoronoiRT(int width, int height)
+    {
+        voronoiRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32)
+        {
+            filterMode = FilterMode.Bilinear,
+            autoGenerateMips = false
+        };
+        voronoiRT.Create();
     }
 
     void CreateComputerBufferFromMesh(Mesh mesh)
@@ -62,7 +76,7 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer.SetData(mesh.vertices);
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
 
-        mat.SetBuffer("worldPosBuffer", worldPosBuffer);
+        grassMat.SetBuffer("worldPosBuffer", worldPosBuffer);
     }
 
     private void Update()
@@ -80,6 +94,8 @@ public class GrassGenerator : MonoBehaviour
         var threadCountX = Mathf.CeilToInt(range / 8f);
         var threadCountZ = Mathf.CeilToInt(range / 8f);
         computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
+
+        Graphics.Blit(null, voronoiRT, VoronoiMat);
     }
 
     int[] args = new int[4];
@@ -92,7 +108,12 @@ public class GrassGenerator : MonoBehaviour
         argsBuffer.SetData(args);
         ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int)); //must update worldPosbuffer count in every frame!!! 
 
-        Graphics.DrawProceduralIndirect(mat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+        Graphics.DrawProceduralIndirect(grassMat, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+    }
+
+    private void OnGUI()
+    {
+        GUI.DrawTexture(new Rect(20, 20, 512, 512), voronoiRT, ScaleMode.ScaleToFit);
     }
 
     void OnDestroy()
@@ -103,7 +124,7 @@ public class GrassGenerator : MonoBehaviour
         colorBuffer.Release();
         positionBuffer.Release();
         argsBuffer.Release();
-
+        voronoiRT.Release();
         if (debugBuffer != null) debugBuffer.Release();
     }
 }

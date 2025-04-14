@@ -208,13 +208,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.19201346, y: -0.29591802, z: 0.06083914, w: -0.93373555}
-  m_LocalPosition: {x: 1.2348375, y: 12.990771, z: -15.673422}
+  m_LocalRotation: {x: -0.26966718, y: -0.3908524, z: 0.120910525, w: -0.8717194}
+  m_LocalPosition: {x: -20.1, y: 27.8, z: -7.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 34.379, y: -311.7, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -736,7 +736,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   height: 1
   width: 0.3
-  segment: 2
+  segment: 1
   mesh: {fileID: 0}
 --- !u!114 &1788075196
 MonoBehaviour:
@@ -752,7 +752,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   computeShader: {fileID: 7200000, guid: 8105394ecbb5ee442a6cf63495bbaad3, type: 3}
   renderCamera: {fileID: 330585545}
-  mat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
+  grassMat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
+  VoronoiMat: {fileID: 2100000, guid: 90b1448dba6845244b6dffc4f0889287, type: 2}
+  voronoiRTSize:
+    x: 320
+    y: 320
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

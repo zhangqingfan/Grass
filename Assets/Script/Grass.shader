@@ -113,7 +113,7 @@
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
                 
-                o.worldPos = centerPoint + grassWorldPos; //check!!
+                o.worldPos = centerPoint + grassWorldPos;
                 o.uv = uv;
                 return o;
             }
