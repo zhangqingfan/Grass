@@ -2,7 +2,7 @@ Shader "Voronoi"
 {
     Properties
     {
-        _Count("Count", Range(1, 40)) = 5
+        //_Count("Count", Range(1, 40)) = 5
     }
     SubShader
     {
@@ -17,7 +17,7 @@ Shader "Voronoi"
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             
-            int _Count;
+            int _grassCount;
 
             struct appdata
             {
@@ -50,7 +50,7 @@ Shader "Voronoi"
                 float minDist = 10;
                 float2 centerPos = float2(0, 0);
 
-                for(int idx = 1; idx < (int)_Count; idx++)
+                for(int idx = 1; idx < (int)_grassCount; idx++)
                 {
                     float2 curCenterPos = random2(float2(idx, idx));
                     float dist = distance(i.uv, curCenterPos);
@@ -62,7 +62,7 @@ Shader "Voronoi"
                     }
                 }
 
-                float4 col = float4(centerPos.x, centerPos.y, centerPos.y, 1); 
+                float4 col = float4(idx, centerPos.x, centerPos.y, 1);
                 return col;
             }
             ENDHLSL

@@ -753,10 +753,14 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: 8105394ecbb5ee442a6cf63495bbaad3, type: 3}
   renderCamera: {fileID: 330585545}
   grassMat: {fileID: 2100000, guid: 8800159e50ca53345aefacf76d9a4ba5, type: 2}
+  grassCount: 20
   VoronoiMat: {fileID: 2100000, guid: 90b1448dba6845244b6dffc4f0889287, type: 2}
   voronoiRTSize:
     x: 320
     y: 320
+  grassConfigList:
+  - pullToCenter: 34
+    sameDir: 44
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

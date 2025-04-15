@@ -1,6 +1,12 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+struct GrassConfig
+{
+    float pullToCenter;
+    float sameDir;
+};
+
 struct GrassPosition
 {
     float3 pos;
@@ -9,8 +15,13 @@ struct GrassPosition
 uint _Range;
 float _Spacing;
 float4x4 _VP_MATRIX;
+int grassConfigBufferCount;
 
 AppendStructuredBuffer<GrassPosition> worldPosBuffer;
+StructuredBuffer<GrassConfig> grassConfigBuffer;
+
+Texture2D<float4> voronoiRT;
+SamplerState sampler_voronoiRT;
 
 bool CameraCull(float3 worldPos)
 {
@@ -30,11 +41,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     if(id.x < _Range && id.y < _Range)
     {
         float3 position = float3(id.x, 0, id.y) * _Spacing;
-        if (CameraCull(position) == false)
-        {
-            GrassPosition gp;
-            gp.pos = position;
-            worldPosBuffer.Append(gp);            
-        }
+        if (CameraCull(position) == true)
+            return;
+        
+        float2 uv = float2((float) (id.x / _Range), (float) (id.y / _Range));
+        float4 col = voronoiRT.SampleLevel(sampler_voronoiRT, uv, 0);
+        
+        int index = fmod(col.r, grassConfigBufferCount);
+        GrassConfig config = grassConfigBuffer[index];
+        
+        float3 centerPos = float3(col.g, 0, col.b);
+        centerPos *= _Range;
+        
+        GrassPosition gp;
+        gp.pos = lerp(position, centerPos, config.pullToCenter);
+        //gp.pos = position;
+        worldPosBuffer.Append(gp);            
     }
 }

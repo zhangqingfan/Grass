@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -7,6 +9,7 @@ public class GrassGenerator : MonoBehaviour
     public ComputeShader computeShader;
     public Camera renderCamera;
     public Material grassMat;
+    public int grassCount;
     public Material VoronoiMat;
     public int2 voronoiRTSize;
     private RenderTexture voronoiRT;
@@ -28,6 +31,11 @@ public class GrassGenerator : MonoBehaviour
     readonly int spacingID = Shader.PropertyToID("_Spacing");
     readonly int worldPosBufferID = Shader.PropertyToID("worldPosBuffer");
     readonly int vpMatrixID = Shader.PropertyToID("_VP_MATRIX");
+    readonly int grassConfigBufferCount = Shader.PropertyToID("grassConfigBufferCount");
+
+    public List<GrassConfig> grassConfigList = new List<GrassConfig>();
+    ComputeBuffer grassConfigBuffer;
+    readonly int grassConfigBufferID = Shader.PropertyToID("grassConfigBuffer");
 
     void Start()
     {
@@ -37,27 +45,20 @@ public class GrassGenerator : MonoBehaviour
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
         argsBuffer = new ComputeBuffer(1, sizeof(int) * 4, ComputeBufferType.IndirectArguments);
-        
+
+        grassConfigBuffer = new ComputeBuffer(grassConfigList.Count, Marshal.SizeOf<GrassConfig>());
+
         CreateComputerBufferFromMesh(GrassMesh.Instance.mesh);
         CreateVoronoiRT(voronoiRTSize.x, voronoiRTSize.y);
-        /*
-        var mf = gameObject.GetComponent<MeshFilter>();
-        mf.mesh = GrassMesh.Instance.mesh;
-        var mr = gameObject.GetComponent<MeshRenderer>();
-        mr.material = mat;
-        */
     }
 
     void CreateVoronoiRT(int width, int height)
     {
-        voronoiRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32)
-        {
-            filterMode = FilterMode.Bilinear,
-            autoGenerateMips = false
-        };
+        voronoiRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         voronoiRT.Create();
+        computeShader.SetTexture(0, "voronoiRT", voronoiRT);
     }
-
+    
     void CreateComputerBufferFromMesh(Mesh mesh)
     {
         triangleBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int));
@@ -76,7 +77,7 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer.SetData(mesh.vertices);
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
 
-        grassMat.SetBuffer("worldPosBuffer", worldPosBuffer);
+        grassMat.SetBuffer("worldPosBuffer", worldPosBuffer);  //可以放在上面？？
     }
 
     private void Update()
@@ -84,8 +85,11 @@ public class GrassGenerator : MonoBehaviour
         worldPosBuffer.SetCounterValue(0);
 
         computeShader.SetInt(rangeID, range);
-        computeShader.SetFloat(spacingID, spacing);
+        computeShader.SetFloat(spacingID, spacing); 
         computeShader.SetBuffer(0, worldPosBufferID, worldPosBuffer);
+
+        computeShader.SetInt(grassConfigBufferCount, grassConfigList.Count);
+        computeShader.SetBuffer(0, grassConfigBufferID, grassConfigBuffer);
 
         var pMatrix = GL.GetGPUProjectionMatrix(renderCamera.projectionMatrix, false);
         var vpMatrix = pMatrix * renderCamera.worldToCameraMatrix;
@@ -95,7 +99,8 @@ public class GrassGenerator : MonoBehaviour
         var threadCountZ = Mathf.CeilToInt(range / 8f);
         computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
 
-        Graphics.Blit(null, voronoiRT, VoronoiMat);
+        Shader.SetGlobalInt("_grassCount", grassCount);
+        Graphics.Blit(null, voronoiRT, VoronoiMat); //todo...临时代码，看效果用的
     }
 
     int[] args = new int[4];
@@ -125,6 +130,7 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer.Release();
         argsBuffer.Release();
         voronoiRT.Release();
+        grassConfigBuffer.Release();
         if (debugBuffer != null) debugBuffer.Release();
     }
 }
