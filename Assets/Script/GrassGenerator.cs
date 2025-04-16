@@ -8,6 +8,7 @@ public class GrassGenerator : MonoBehaviour
     public ComputeShader computeShader;
     public Camera renderCamera;
     public Material grassMat;
+    [Range(5, 30)]
     public int grassCount;
     public Material VoronoiMat;
     public int2 voronoiRTSize;
@@ -47,7 +48,13 @@ public class GrassGenerator : MonoBehaviour
 
     void CreateVoronoiRT(int width, int height)
     {
-        voronoiRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGBHalf, 0)
+        {
+            autoGenerateMips = false,
+            sRGB = false
+        };
+        voronoiRT = new RenderTexture(desc);
+        voronoiRT.filterMode = FilterMode.Point;
         voronoiRT.Create();
         Graphics.Blit(null, voronoiRT, VoronoiMat); 
     }
@@ -72,7 +79,6 @@ public class GrassGenerator : MonoBehaviour
         worldPosBuffer.SetCounterValue(0);
 
         grassConfigBuffer = new ComputeBuffer(grassConfigList.Count, Marshal.SizeOf<GrassConfig>());
-        grassConfigBuffer.SetData(grassConfigList.ToArray());
     }
 
     void SyncShader()
@@ -99,6 +105,7 @@ public class GrassGenerator : MonoBehaviour
         computeShader.SetMatrix(vpMatrixID, vpMatrix);
 
         computeShader.SetInt(grassConfigBufferCount, grassConfigList.Count);
+        grassConfigBuffer.SetData(grassConfigList.ToArray());  //todo...¡Ÿ ±¥˙¬Î£°
         computeShader.SetBuffer(0, grassConfigBufferID, grassConfigBuffer);
 
         computeShader.SetTexture(0, "voronoiRT", voronoiRT);

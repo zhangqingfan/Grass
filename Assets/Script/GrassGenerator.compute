@@ -40,22 +40,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if(id.x < _Range && id.y < _Range)
     {
-        float3 position = float3(id.x, 0, id.y) * _Spacing;
+        float2 uv = float2(id.x, id.y) / float2(_Range, _Range);
+        float4 col = voronoiRT.SampleLevel(sampler_voronoiRT, uv, 0);
+        float2 centerPosUV = float2(col.g, col.b);
+        
+        int idx = (int) col.r;
+        idx = fmod(idx, grassConfigBufferCount);
+        GrassConfig config = grassConfigBuffer[idx]; //TODO...
+        uv = lerp(uv, centerPosUV, config.pullToCenter);
+        
+        float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
         if (CameraCull(position) == true)
             return;
         
-        float2 uv = float2((float) (id.x / _Range), (float) (id.y / _Range));
-        float4 col = voronoiRT.SampleLevel(sampler_voronoiRT, uv, 0);
-        
-        int index = fmod(col.r, grassConfigBufferCount);
-        GrassConfig config = grassConfigBuffer[0];
-        
-        float3 centerPos = float3(col.g, 0, col.b);
-        centerPos *= _Range;
-        
         GrassPosition gp;
-        gp.pos = lerp(position, centerPos, config.pullToCenter);
-        //gp.pos = position;
+        gp.pos = position;
         worldPosBuffer.Append(gp);            
     }
 }
