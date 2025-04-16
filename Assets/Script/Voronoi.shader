@@ -49,6 +49,7 @@ Shader "Voronoi"
             {
                 float minDist = 10;
                 float2 centerPos = float2(0, 0);
+                int groupID = 0;
 
                 for(int idx = 1; idx < (int)_grassCount; idx++)
                 {
@@ -59,10 +60,11 @@ Shader "Voronoi"
                     {
                         minDist = dist;
                         centerPos = curCenterPos;
+                        groupID = idx;
                     }
                 }
 
-                float4 col = float4(idx, centerPos.x, centerPos.y, 1);
+                float4 col = float4(groupID, centerPos.x, centerPos.y, 1);
                 return col;
             }
             ENDHLSL
