@@ -30,12 +30,13 @@
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Bezier.hlsl"
 
-            struct GrassPosition
+            struct GrassInfo
             {
                 float3 pos;
+                float3 rotation;
             };
 
-            StructuredBuffer<GrassPosition> worldPosBuffer;
+            StructuredBuffer<GrassInfo> grassInfoBuffer;
             StructuredBuffer<float3> vertexBuffer;
             StructuredBuffer<float2> uvBuffer;
             StructuredBuffer<float4> colorBuffer;
@@ -102,7 +103,7 @@
                 float3 vertex = vertexBuffer[index];
                 float4 color = colorBuffer[index];
                 float2 uv = uvBuffer[index];
-                float3 grassWorldPos = worldPosBuffer[v.instanceID].pos;
+                float3 grassWorldPos = grassInfoBuffer[v.instanceID].pos;
                 //grassWorldPos = float3(0,0,0);
                 
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);

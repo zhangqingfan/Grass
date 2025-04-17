@@ -14,7 +14,7 @@ public class GrassGenerator : MonoBehaviour
     public int2 voronoiRTSize;
     private RenderTexture voronoiRT;
 
-    ComputeBuffer worldPosBuffer;
+    ComputeBuffer grassInfoBuffer;
     ComputeBuffer triangleBuffer;
     ComputeBuffer uvBuffer;
     ComputeBuffer positionBuffer;
@@ -29,8 +29,9 @@ public class GrassGenerator : MonoBehaviour
 
     readonly int rangeID = Shader.PropertyToID("_Range");
     readonly int spacingID = Shader.PropertyToID("_Spacing");
-    readonly int worldPosBufferID = Shader.PropertyToID("worldPosBuffer");
+    readonly int grassInfoBufferID = Shader.PropertyToID("worldPosBuffer");
     readonly int vpMatrixID = Shader.PropertyToID("_VP_MATRIX");
+    readonly int cameraPosID = Shader.PropertyToID("_CameraPos");
 
     public List<GrassConfig> grassConfigList = new List<GrassConfig>();
     readonly int grassConfigBufferCount = Shader.PropertyToID("grassConfigBufferCount");
@@ -75,8 +76,8 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer = new ComputeBuffer(mesh.vertices.Length, sizeof(float) * 3);
         positionBuffer.SetData(mesh.vertices);
 
-        worldPosBuffer = new ComputeBuffer(range * range, sizeof(float) * 3, ComputeBufferType.Append);
-        worldPosBuffer.SetCounterValue(0);
+        grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 * 2, ComputeBufferType.Append);
+        grassInfoBuffer.SetCounterValue(0);
 
         grassConfigBuffer = new ComputeBuffer(grassConfigList.Count, Marshal.SizeOf<GrassConfig>());
     }
@@ -88,7 +89,7 @@ public class GrassGenerator : MonoBehaviour
         Shader.SetGlobalBuffer("uvBuffer", uvBuffer);
         Shader.SetGlobalBuffer("colorBuffer", colorBuffer);
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
-        Shader.SetGlobalBuffer("worldPosBuffer", worldPosBuffer);
+        Shader.SetGlobalBuffer("grassInfoBuffer", grassInfoBuffer);
         
         //Voronoi Shader;
         Shader.SetGlobalInt("_grassCount", grassCount);
@@ -98,7 +99,8 @@ public class GrassGenerator : MonoBehaviour
     {
         computeShader.SetInt(rangeID, range);
         computeShader.SetFloat(spacingID, spacing);
-        computeShader.SetBuffer(0, worldPosBufferID, worldPosBuffer);
+        computeShader.SetVector(cameraPosID, renderCamera.transform.position);
+        computeShader.SetBuffer(0, grassInfoBufferID, grassInfoBuffer);
 
         var pMatrix = GL.GetGPUProjectionMatrix(renderCamera.projectionMatrix, false);
         var vpMatrix = pMatrix * renderCamera.worldToCameraMatrix;
@@ -113,7 +115,7 @@ public class GrassGenerator : MonoBehaviour
 
     private void Update()
     {
-        worldPosBuffer.SetCounterValue(0);
+        grassInfoBuffer.SetCounterValue(0);
         SyncComputeShader();
 
         var threadCountX = Mathf.CeilToInt(range / 8f);
@@ -130,7 +132,7 @@ public class GrassGenerator : MonoBehaviour
         args[2] = 0;
         args[3] = 0;
         argsBuffer.SetData(args);
-        ComputeBuffer.CopyCount(worldPosBuffer, argsBuffer, sizeof(int)); //must update worldPosbuffer count in every frame!!! 
+        ComputeBuffer.CopyCount(grassInfoBuffer, argsBuffer, sizeof(int)); //must update worldPosbuffer count in every frame!!! 
     }
 
     private void LateUpdate()
@@ -146,7 +148,7 @@ public class GrassGenerator : MonoBehaviour
 
     void OnDestroy()
     {
-        worldPosBuffer.Release();
+        grassInfoBuffer.Release();
         triangleBuffer.Release();
         uvBuffer.Release();
         colorBuffer.Release();

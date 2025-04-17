@@ -5,19 +5,22 @@ struct GrassConfig
 {
     float pullToCenter;
     float sameDir;
+    float offset;
 };
 
-struct GrassPosition
+struct GrassInfo
 {
     float3 pos;
+    float3 rotation;
 };
 
 uint _Range;
 float _Spacing;
 float4x4 _VP_MATRIX;
 int grassConfigBufferCount;
+float3 _CameraPos;
 
-AppendStructuredBuffer<GrassPosition> worldPosBuffer;
+AppendStructuredBuffer<GrassInfo> grassInfoBuffer;
 StructuredBuffer<GrassConfig> grassConfigBuffer;
 
 Texture2D<float4> voronoiRT;
@@ -35,6 +38,24 @@ bool CameraCull(float3 worldPos)
     return true;
 }
 
+float Rand(float x)
+{
+    return frac(sin(x) * 43758.5453);
+}
+
+float RandomRange(float x, float n)
+{
+    return (Rand(x) * 2.0 - 1.0) * n;
+}
+
+float3 GetGrassFacing(float3 worldPos)
+{
+    float3 facing = float3(0, 0, -1);
+    float3 cameraDir = normalize(_CameraPos - worldPos);
+    //todo...dot;
+    return facing;
+}
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -50,11 +71,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv = lerp(uv, centerPosUV, config.pullToCenter);
         
         float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
+        position.x += RandomRange(position.x, config.offset);
+        position.z += RandomRange(position.z, config.offset);
+        
         if (CameraCull(position) == true)
             return;
         
-        GrassPosition gp;
+        float2 centerPos = centerPosUV * _Range * _Spacing;
+        float3 sharedFacing = float3(Rand(centerPos.x), 0, Rand(centerPos.y));
+        float3 grassFacing = float3(0, 0, -1); 
+        grassFacing = lerp(grassFacing, sharedFacing, config.sameDir);
+        
+        GrassInfo gp;
         gp.pos = position;
-        worldPosBuffer.Append(gp);            
+        gp.rotation = grassFacing;
+        grassInfoBuffer.Append(gp);
     }
 }
