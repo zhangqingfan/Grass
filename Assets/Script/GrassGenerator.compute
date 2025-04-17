@@ -46,7 +46,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         
         int idx = (int) col.r;
         idx = fmod(idx, grassConfigBufferCount);
-        GrassConfig config = grassConfigBuffer[idx]; //TODO...
+        GrassConfig config = grassConfigBuffer[idx];
         uv = lerp(uv, centerPosUV, config.pullToCenter);
         
         float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
