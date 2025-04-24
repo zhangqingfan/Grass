@@ -6,7 +6,8 @@ struct GrassConfig
     float pullToCenter;
     float heightOffset;
     float topOffset;
-    float offset;
+    float bend;
+    float worldPosOffset;
 };
 
 struct GrassInfo
@@ -15,6 +16,7 @@ struct GrassInfo
     float rotationDeg;
     float heightOffset;
     float topOffset;
+    float bend;
 };
 
 uint _Range;
@@ -104,8 +106,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv = lerp(uv, centerPosUV, config.pullToCenter);
         
         float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
-        position.x += RandomRange(position.x + position.z, config.offset);
-        position.z += RandomRange(position.x - position.z, config.offset);
+        position.x += RandomRange(position.x + position.z, config.worldPosOffset);
+        position.z += RandomRange(position.x - position.z, config.worldPosOffset);
         
         if (CameraCull(position) == true)
             return;
@@ -125,12 +127,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         
         float heightOffset = RandomRange(position.x + position.z, config.heightOffset);
         float topOffset = RandomRange(position.x - position.z, config.topOffset);
+        float bend = RandomRange(position.x * position.z, config.bend);
         
         GrassInfo gp;
         gp.pos = position;
         gp.rotationDeg = rotationDeg;
         gp.heightOffset = heightOffset;
         gp.topOffset = topOffset;
+        gp.bend = bend;
         grassInfoBuffer.Append(gp);
     }
 }

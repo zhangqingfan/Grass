@@ -36,6 +36,7 @@
                 float rotationDeg;
                 float heightOffset;
                 float topOffset;
+                float bend;
             };
 
             StructuredBuffer<GrassInfo> grassInfoBuffer;

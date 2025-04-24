@@ -13,6 +13,9 @@ public struct GrassConfig
     [Range(0, 0.5f)]
     public float topOffset;
 
+    [Range(0, 1f)]
+    public float bend;
+
     [Range(0, 2)]
-    public float offset;
+    public float worldPosOffset;
 }
