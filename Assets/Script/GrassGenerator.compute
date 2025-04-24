@@ -4,7 +4,7 @@
 struct GrassConfig
 {
     float pullToCenter;
-    float sameDir;
+    float heightOffset;
     float offset;
 };
 
@@ -12,6 +12,7 @@ struct GrassInfo
 {
     float3 pos;
     float rotationDeg;
+    float heightOffset;
 };
 
 uint _Range;
@@ -120,9 +121,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         rotationDeg += windDeg;// * abs(cos(rad));;
         //
         
+        float heightOffset = RandomRange(position.x + position.z, config.heightOffset);
+        
         GrassInfo gp;
         gp.pos = position;
         gp.rotationDeg = rotationDeg;
+        gp.heightOffset = heightOffset;
         grassInfoBuffer.Append(gp);
     }
 }

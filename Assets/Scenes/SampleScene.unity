@@ -763,13 +763,13 @@ MonoBehaviour:
   windSpeed: 0.1
   grassConfigList:
   - pullToCenter: 0
-    sameDir: 0.52
+    heightOffset: 0.5
     offset: 0.81
   - pullToCenter: 0
-    sameDir: 0.52
+    heightOffset: 0.5
     offset: 1.65
   - pullToCenter: 0
-    sameDir: 0.52
+    heightOffset: 0.5
     offset: 0.72
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
