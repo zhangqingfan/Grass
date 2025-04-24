@@ -760,7 +760,7 @@ MonoBehaviour:
     y: 320
   windRT: {fileID: 2800000, guid: 66bbbaa872e919e4081751a337f6eaf7, type: 3}
   positionOffset: {x: 0, y: -0.2, z: 0}
-  windSpeed: 1.1
+  windSpeed: 0.1
   grassConfigList:
   - pullToCenter: 0
     sameDir: 0.52

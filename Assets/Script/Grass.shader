@@ -33,7 +33,7 @@
             struct GrassInfo
             {
                 float3 pos;
-                float3 rotation;
+                float rotationDeg;
             };
 
             StructuredBuffer<GrassInfo> grassInfoBuffer;
@@ -81,6 +81,21 @@
                 return P2Start + dir * _P2Offset;
             }
 
+            float3 RotateAroundY(float3 vertex, float angleDeg)
+            {
+                float angleRad = radians(angleDeg);
+    
+                float c = cos(angleRad);
+                float s = sin(angleRad);
+    
+                float3 rotatedVertex;
+                rotatedVertex.x = vertex.x * c + vertex.z * s; 
+                rotatedVertex.y = vertex.y;                    
+                rotatedVertex.z = -vertex.x * s + vertex.z * c; 
+                
+                return rotatedVertex;
+            }
+
             struct appdata
             {
                 uint vertexID : SV_VertexID;
@@ -111,15 +126,8 @@
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
 
                 //apply rotation
-                float3 rotation = grassInfoBuffer[v.instanceID].rotation;
-                rotation = normalize(rotation * float3(1, 0, 1)); //remove y rotation
-                
-                float angle = atan2(rotation.x, rotation.z); 
-                float c = cos(angle);
-                float s = sin(angle);
-
-                centerPoint.x = centerPoint.x * c - centerPoint.z * s;
-                centerPoint.z = centerPoint.x * s + centerPoint.z * c;
+                float rotateDeg = grassInfoBuffer[v.instanceID].rotationDeg;
+                centerPoint = RotateAroundY(centerPoint, rotateDeg);
                 //
 
                 o.worldPos = grassWorldPos + centerPoint + _PositionOffset;

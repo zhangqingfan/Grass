@@ -11,7 +11,7 @@ struct GrassConfig
 struct GrassInfo
 {
     float3 pos;
-    float3 rotation;
+    float rotationDeg;
 };
 
 uint _Range;
@@ -67,25 +67,23 @@ float3 RotateVectorY(float3 direction, float angleDegrees)
     return normalize(rotated);
 }
 
-float3 ChangeGrassFacing(float3 worldPos, float3 facing)
+float ChangeGrassFacing(float3 worldPos)
 {
     float3 cameraDir = normalize(_CameraPos - worldPos);
-    float dotProduct = dot(cameraDir, facing);
-    float currentAngle = acos(dotProduct) * 180.0 / 3.14159265359;
-     
-    float minAngle = 50.0;
-    float maxAngle = 130.0;
+    float angleRad = atan2(cameraDir.z, cameraDir.x);
+    float angleDeg = degrees(angleRad);
     
-    if (currentAngle > minAngle && currentAngle < maxAngle)
+    if(angleDeg > -30 && angleDeg < 30)
     {
-        float t = (currentAngle - minAngle) / (maxAngle - minAngle);
-        float targetAngle = (t < 0.5) ? minAngle : maxAngle;
-        
-        float deltaAngle = targetAngle - currentAngle;
-        facing = RotateVectorY(facing, deltaAngle);        
+        return angleDeg > 0 ? 30 : -30;
     }
     
-    return facing;
+    else if (angleDeg > 150 || angleDeg < -150)
+    {
+        return angleDeg > 150 ? 150 : -150;
+    }
+    
+    return angleDeg;
 }
 
 [numthreads(8,8,1)]
@@ -111,21 +109,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         
         float2 centerPos = centerPosUV * _Range * _Spacing;
         float3 sharedFacing = normalize(float3(Rand(centerPos.x), 0, Rand(centerPos.y)));
-        float3 grassFacing = float3(0, 0, 1); 
         //grassFacing = normalize(lerp(grassFacing, sharedFacing, config.sameDir)); //bug...
-        grassFacing = ChangeGrassFacing(position, grassFacing);
+        float rotationDeg = ChangeGrassFacing(position);
         
         //wind
         float2 windUV = uv + _Time * _WindSpeed;
-        float windValue = windRT.SampleLevel(sampler_windRT, windUV, 0);
-        float windAngle = (windValue * 2 - 1) * 3.14159265359;
-        float3 windDir = float3(cos(windAngle), 0, sin(windAngle));
-        float dotProduct = dot(windDir, grassFacing);
-        grassFacing += windDir;
+        float windDeg = windRT.SampleLevel(sampler_windRT, windUV, 0);
+        windDeg = (windDeg * 2 - 1) * 180;
+        float rad = (windDeg - rotationDeg) *  3.1415926f / 180.0f;
+        rotationDeg += windDeg;// * abs(cos(rad));;
+        //
         
         GrassInfo gp;
         gp.pos = position;
-        gp.rotation = normalize(grassFacing);
+        gp.rotationDeg = rotationDeg;
         grassInfoBuffer.Append(gp);
     }
 }

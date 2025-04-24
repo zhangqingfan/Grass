@@ -72,7 +72,7 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer = new ComputeBuffer(mesh.vertices.Length, Marshal.SizeOf<Vector3>());
         positionBuffer.SetData(mesh.vertices);
 
-        grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 * 2, ComputeBufferType.Append);
+        grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 + sizeof(float), ComputeBufferType.Append);
         grassInfoBuffer.SetCounterValue(0);
 
         grassConfigBuffer = new ComputeBuffer(grassConfigList.Count, Marshal.SizeOf<GrassConfig>());
