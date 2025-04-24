@@ -35,6 +35,7 @@
                 float3 pos;
                 float rotationDeg;
                 float heightOffset;
+                float topOffset;
             };
 
             StructuredBuffer<GrassInfo> grassInfoBuffer;
@@ -122,6 +123,7 @@
                 float2 uv = uvBuffer[index];
                 float3 grassWorldPos = grassInfoBuffer[v.instanceID].pos;
                 _Height += grassInfoBuffer[v.instanceID].heightOffset;
+                _TopOffset += grassInfoBuffer[v.instanceID].topOffset;
 
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);

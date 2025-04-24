@@ -9,8 +9,10 @@ public struct GrassConfig
     
     [Range(0, 1)]
     public float heightOffset;
-    
+
+    [Range(0, 0.5f)]
+    public float topOffset;
+
     [Range(0, 2)]
     public float offset;
-
 }
