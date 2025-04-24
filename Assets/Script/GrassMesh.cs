@@ -7,10 +7,10 @@ public class GrassMesh : MonoBehaviour
     [Range(1f, 2f)]
     public float height = 1;
     
-    [Range(0.2f, 0.6f)]
-    public float width = 0.3f;
+    [Range(0.05f, 0.2f)]
+    public float width = 0.1f;
     
-    [Range(1, 5)]
+    [Range(1, 10)]
     public int segment = 1; //not include top point.
 
     [HideInInspector]

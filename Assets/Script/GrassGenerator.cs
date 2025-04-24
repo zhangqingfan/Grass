@@ -13,6 +13,10 @@ public class GrassGenerator : MonoBehaviour
     public Material VoronoiMat;
     public int2 voronoiRTSize;
     private RenderTexture voronoiRT;
+    public Texture2D windRT;
+    public Vector3 positionOffset;
+    [Range(0f, 20f)]
+    public float windSpeed;
 
     ComputeBuffer grassInfoBuffer;
     ComputeBuffer triangleBuffer;
@@ -25,17 +29,9 @@ public class GrassGenerator : MonoBehaviour
 
     //ComputeBuffer debugBuffer;
     int range = 100;
-    float spacing = 0.5f;
-
-    readonly int rangeID = Shader.PropertyToID("_Range");
-    readonly int spacingID = Shader.PropertyToID("_Spacing");
-    readonly int grassInfoBufferID = Shader.PropertyToID("worldPosBuffer");
-    readonly int vpMatrixID = Shader.PropertyToID("_VP_MATRIX");
-    readonly int cameraPosID = Shader.PropertyToID("_CameraPos");
+    float spacing = 0.2f;
 
     public List<GrassConfig> grassConfigList = new List<GrassConfig>();
-    readonly int grassConfigBufferCount = Shader.PropertyToID("grassConfigBufferCount");
-    readonly int grassConfigBufferID = Shader.PropertyToID("grassConfigBuffer");
 
     void Start()
     {
@@ -64,16 +60,16 @@ public class GrassGenerator : MonoBehaviour
     {
         var mesh = GrassMesh.Instance.mesh;
 
-        triangleBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int));
+        triangleBuffer = new ComputeBuffer(mesh.triangles.Length, Marshal.SizeOf<int>());
         triangleBuffer.SetData(mesh.triangles);
 
-        uvBuffer = new ComputeBuffer(mesh.uv.Length, sizeof(float) * 2);
+        uvBuffer = new ComputeBuffer(mesh.uv.Length, Marshal.SizeOf<Vector2>());
         uvBuffer.SetData(mesh.uv);
 
-        colorBuffer = new ComputeBuffer(mesh.colors.Length, sizeof(float) * 4);
+        colorBuffer = new ComputeBuffer(mesh.colors.Length, Marshal.SizeOf<Color>());
         colorBuffer.SetData(mesh.colors);
 
-        positionBuffer = new ComputeBuffer(mesh.vertices.Length, sizeof(float) * 3);
+        positionBuffer = new ComputeBuffer(mesh.vertices.Length, Marshal.SizeOf<Vector3>());
         positionBuffer.SetData(mesh.vertices);
 
         grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 * 2, ComputeBufferType.Append);
@@ -90,6 +86,7 @@ public class GrassGenerator : MonoBehaviour
         Shader.SetGlobalBuffer("colorBuffer", colorBuffer);
         Shader.SetGlobalBuffer("vertexBuffer", positionBuffer);
         Shader.SetGlobalBuffer("grassInfoBuffer", grassInfoBuffer);
+        //Shader.SetGlobalVector("_PositionOffset", positionOffset);
         
         //Voronoi Shader;
         Shader.SetGlobalInt("_grassCount", grassCount);
@@ -97,26 +94,30 @@ public class GrassGenerator : MonoBehaviour
 
     void SyncComputeShader()
     {
-        computeShader.SetInt(rangeID, range);
-        computeShader.SetFloat(spacingID, spacing);
-        computeShader.SetVector(cameraPosID, renderCamera.transform.position);
-        computeShader.SetBuffer(0, grassInfoBufferID, grassInfoBuffer);
-
+        computeShader.SetInt("_Range", range);
+        computeShader.SetFloat("_Spacing", spacing);
+        computeShader.SetVector("_CameraPos", renderCamera.transform.position);
+        computeShader.SetBuffer(0, "grassInfoBuffer", grassInfoBuffer);
+        computeShader.SetFloat("_WindSpeed", windSpeed);
+        computeShader.SetFloat("_Time", Time.time);
+        
         var pMatrix = GL.GetGPUProjectionMatrix(renderCamera.projectionMatrix, false);
         var vpMatrix = pMatrix * renderCamera.worldToCameraMatrix;
-        computeShader.SetMatrix(vpMatrixID, vpMatrix);
+        computeShader.SetMatrix("_VP_MATRIX", vpMatrix);
 
-        computeShader.SetInt(grassConfigBufferCount, grassConfigList.Count);
+        computeShader.SetInt("grassConfigBufferCount", grassConfigList.Count);
         grassConfigBuffer.SetData(grassConfigList.ToArray());  //todo...¡Ÿ ±¥˙¬Î£°
-        computeShader.SetBuffer(0, grassConfigBufferID, grassConfigBuffer);
+        computeShader.SetBuffer(0, "grassConfigBuffer", grassConfigBuffer);
 
         computeShader.SetTexture(0, "voronoiRT", voronoiRT);
+        computeShader.SetTexture(0, "windRT", windRT);
     }
 
     private void Update()
     {
         grassInfoBuffer.SetCounterValue(0);
         SyncComputeShader();
+        Shader.SetGlobalVector("_PositionOffset", positionOffset);
 
         var threadCountX = Mathf.CeilToInt(range / 8f);
         var threadCountZ = Mathf.CeilToInt(range / 8f);

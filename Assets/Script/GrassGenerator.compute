@@ -19,12 +19,17 @@ float _Spacing;
 float4x4 _VP_MATRIX;
 int grassConfigBufferCount;
 float3 _CameraPos;
+float _WindSpeed;
+float _Time;
 
 AppendStructuredBuffer<GrassInfo> grassInfoBuffer;
 StructuredBuffer<GrassConfig> grassConfigBuffer;
 
 Texture2D<float4> voronoiRT;
 SamplerState sampler_voronoiRT;
+
+Texture2D<float4> windRT;
+SamplerState sampler_windRT;
 
 bool CameraCull(float3 worldPos)
 {
@@ -48,11 +53,38 @@ float RandomRange(float x, float n)
     return (Rand(x) * 2.0 - 1.0) * n;
 }
 
-float3 GetGrassFacing(float3 worldPos)
+float3 RotateVectorY(float3 direction, float angleDegrees)
 {
-    float3 facing = float3(0, 0, -1);
+    float angleRadians = radians(angleDegrees);
+    float s = sin(angleRadians);
+    float c = cos(angleRadians);
+    
+    float3 rotated;
+    rotated.x = direction.x * c - direction.z * s;
+    rotated.y = direction.y;
+    rotated.z = direction.z * c + direction.x * s;
+   
+    return normalize(rotated);
+}
+
+float3 ChangeGrassFacing(float3 worldPos, float3 facing)
+{
     float3 cameraDir = normalize(_CameraPos - worldPos);
-    //todo...dot;
+    float dotProduct = dot(cameraDir, facing);
+    float currentAngle = acos(dotProduct) * 180.0 / 3.14159265359;
+     
+    float minAngle = 50.0;
+    float maxAngle = 130.0;
+    
+    if (currentAngle > minAngle && currentAngle < maxAngle)
+    {
+        float t = (currentAngle - minAngle) / (maxAngle - minAngle);
+        float targetAngle = (t < 0.5) ? minAngle : maxAngle;
+        
+        float deltaAngle = targetAngle - currentAngle;
+        facing = RotateVectorY(facing, deltaAngle);        
+    }
+    
     return facing;
 }
 
@@ -71,20 +103,29 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv = lerp(uv, centerPosUV, config.pullToCenter);
         
         float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
-        position.x += RandomRange(position.x, config.offset);
-        position.z += RandomRange(position.z, config.offset);
+        position.x += RandomRange(position.x + position.z, config.offset);
+        position.z += RandomRange(position.x - position.z, config.offset);
         
         if (CameraCull(position) == true)
             return;
         
         float2 centerPos = centerPosUV * _Range * _Spacing;
-        float3 sharedFacing = float3(Rand(centerPos.x), 0, Rand(centerPos.y));
-        float3 grassFacing = float3(0, 0, -1); 
-        grassFacing = lerp(grassFacing, sharedFacing, config.sameDir);
+        float3 sharedFacing = normalize(float3(Rand(centerPos.x), 0, Rand(centerPos.y)));
+        float3 grassFacing = float3(0, 0, 1); 
+        //grassFacing = normalize(lerp(grassFacing, sharedFacing, config.sameDir)); //bug...
+        grassFacing = ChangeGrassFacing(position, grassFacing);
+        
+        //wind
+        float2 windUV = uv + _Time * _WindSpeed;
+        float windValue = windRT.SampleLevel(sampler_windRT, windUV, 0);
+        float windAngle = (windValue * 2 - 1) * 3.14159265359;
+        float3 windDir = float3(cos(windAngle), 0, sin(windAngle));
+        float dotProduct = dot(windDir, grassFacing);
+        grassFacing += windDir;
         
         GrassInfo gp;
         gp.pos = position;
-        gp.rotation = grassFacing;
+        gp.rotation = normalize(grassFacing);
         grassInfoBuffer.Append(gp);
     }
 }

@@ -49,6 +49,7 @@
             float _P1Offset;
             float _P2Offset;
             float _Taper;
+            float3 _PositionOffset;
             TEXTURE2D(_Gloss);
             SAMPLER(sampler_Gloss);
             TEXTURE2D(_Albedo);
@@ -108,13 +109,26 @@
                 
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
-                o.vertex = TransformWorldToHClip(grassWorldPos + centerPoint); 
+
+                //apply rotation
+                float3 rotation = grassInfoBuffer[v.instanceID].rotation;
+                rotation = normalize(rotation * float3(1, 0, 1)); //remove y rotation
+                
+                float angle = atan2(rotation.x, rotation.z); 
+                float c = cos(angle);
+                float s = sin(angle);
+
+                centerPoint.x = centerPoint.x * c - centerPoint.z * s;
+                centerPoint.z = centerPoint.x * s + centerPoint.z * c;
+                //
+
+                o.worldPos = grassWorldPos + centerPoint + _PositionOffset;
+                o.vertex = TransformWorldToHClip(o.worldPos); 
                 
                 float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
                 
-                o.worldPos = centerPoint + grassWorldPos;
                 o.uv = uv;
                 return o;
             }
