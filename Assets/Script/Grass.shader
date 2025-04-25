@@ -34,6 +34,8 @@
             {
                 float3 pos;
                 float rotationDeg;
+                float windDeg;
+                float windSpeed;
                 float heightOffset;
                 float topOffset;
                 float bend;
@@ -53,6 +55,7 @@
             float _P2Offset;
             float _Taper;
             float3 _PositionOffset;
+            float _WindForce;
             TEXTURE2D(_Gloss);
             SAMPLER(sampler_Gloss);
             TEXTURE2D(_Albedo);
@@ -68,20 +71,20 @@
                 return float3(_TopOffset, _Height, 0);
             }
 
-            float3 GetP1()
+            float3 GetP1(float blend)
             {
                 float3 P1Start = lerp(GetP0(), GetP3(), 0.33);
                 float3 dir = cross((GetP3() - GetP0()), float3(0,0,1));
                 dir = normalize(dir);
-                return P1Start + dir * _P1Offset;
+                return P1Start + dir * (_P1Offset + blend);
             }
 
-            float3 GetP2()
+            float3 GetP2(float blend)
             {
                 float3 P2Start = lerp(GetP0(), GetP3(), 0.66);
                 float3 dir = cross((GetP3() - GetP0()), float3(0,0,1));
                 dir = normalize(dir);
-                return P2Start + dir * _P2Offset;
+                return P2Start + dir * (_P2Offset + blend);
             }
 
             float3 RotateAroundY(float3 vertex, float angleDeg)
@@ -123,21 +126,28 @@
                 float4 color = colorBuffer[index];
                 float2 uv = uvBuffer[index];
                 float3 grassWorldPos = grassInfoBuffer[v.instanceID].pos;
+
                 _Height += grassInfoBuffer[v.instanceID].heightOffset;
                 _TopOffset += grassInfoBuffer[v.instanceID].topOffset;
+                float blend = grassInfoBuffer[v.instanceID].bend;
 
-                float3 centerPoint = CubicBezier(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
+                float3 centerPoint = CubicBezier(GetP0(), GetP1(blend), GetP2(blend), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
 
                 //apply rotation
                 float rotateDeg = grassInfoBuffer[v.instanceID].rotationDeg;
                 centerPoint = RotateAroundY(centerPoint, rotateDeg);
+                
+                //appley wind speed;
+                float windRad = radians(grassInfoBuffer[v.instanceID].windDeg);
+                float3 windDir = float3(cos(windRad), 0, sin(windRad)) * color.g * _WindForce;
+                centerPoint += windDir;
                 //
-
                 o.worldPos = grassWorldPos + centerPoint + _PositionOffset;
                 o.vertex = TransformWorldToHClip(o.worldPos); 
                 
-                float3 tangent = CubicBezierTangent(GetP0(), GetP1(), GetP2(), GetP3(), color.g);
+                //todo....change place!
+                float3 tangent = CubicBezierTangent(GetP0(), GetP1(blend), GetP2(blend), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
                 o.normal = TransformObjectToWorldNormal(normal);
                 

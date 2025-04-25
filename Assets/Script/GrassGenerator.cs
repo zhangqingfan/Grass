@@ -15,7 +15,9 @@ public class GrassGenerator : MonoBehaviour
     private RenderTexture voronoiRT;
     public Texture2D windRT;
     public Vector3 positionOffset;
-    [Range(0f, 20f)]
+    [Range(0, 2f)]
+    public float windForce;
+    [Range(0f, 2f)]
     public float windSpeed;
 
     ComputeBuffer grassInfoBuffer;
@@ -29,7 +31,7 @@ public class GrassGenerator : MonoBehaviour
 
     //ComputeBuffer debugBuffer;
     int range = 100;
-    float spacing = 0.2f;
+    float spacing = 0.1f;
 
     public List<GrassConfig> grassConfigList = new List<GrassConfig>();
 
@@ -72,7 +74,7 @@ public class GrassGenerator : MonoBehaviour
         positionBuffer = new ComputeBuffer(mesh.vertices.Length, Marshal.SizeOf<Vector3>());
         positionBuffer.SetData(mesh.vertices);
 
-        grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 + sizeof(float) * 4, ComputeBufferType.Append);
+        grassInfoBuffer = new ComputeBuffer(range * range, sizeof(float) * 3 + sizeof(float) * 6, ComputeBufferType.Append);
         grassInfoBuffer.SetCounterValue(0);
 
         grassConfigBuffer = new ComputeBuffer(grassConfigList.Count, Marshal.SizeOf<GrassConfig>());
@@ -118,7 +120,8 @@ public class GrassGenerator : MonoBehaviour
         grassInfoBuffer.SetCounterValue(0);
         SyncComputeShader();
         Shader.SetGlobalVector("_PositionOffset", positionOffset);
-
+        Shader.SetGlobalFloat("_WindForce", windForce);
+        
         var threadCountX = Mathf.CeilToInt(range / 8f);
         var threadCountZ = Mathf.CeilToInt(range / 8f);
         computeShader.Dispatch(0, threadCountX, threadCountZ, 1);
