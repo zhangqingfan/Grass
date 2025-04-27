@@ -74,7 +74,7 @@
             float3 GetP1(float blend)
             {
                 float3 P1Start = lerp(GetP0(), GetP3(), 0.33);
-                float3 dir = cross((GetP3() - GetP0()), float3(0,0,1));
+                float3 dir = cross((GetP3() - GetP0()), float3(0,0,1)); 
                 dir = normalize(dir);
                 return P1Start + dir * (_P1Offset + blend);
             }
@@ -130,6 +130,7 @@
                 _Height += grassInfoBuffer[v.instanceID].heightOffset;
                 _TopOffset += grassInfoBuffer[v.instanceID].topOffset;
                 float blend = grassInfoBuffer[v.instanceID].bend;
+                blend = 0; //临时代码！
 
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(blend), GetP2(blend), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
@@ -139,10 +140,13 @@
                 centerPoint = RotateAroundY(centerPoint, rotateDeg);
                 
                 //appley wind speed;
-                float windRad = radians(grassInfoBuffer[v.instanceID].windDeg);
+                float windDeg = grassInfoBuffer[v.instanceID].windDeg;
+                centerPoint = color.g == 0 ? centerPoint : RotateAroundY(centerPoint, windDeg);
+                float windRad = radians(windDeg);
                 float3 windDir = float3(cos(windRad), 0, sin(windRad)) * color.g * _WindForce;
                 centerPoint += windDir;
                 //
+
                 o.worldPos = grassWorldPos + centerPoint + _PositionOffset;
                 o.vertex = TransformWorldToHClip(o.worldPos); 
                 
