@@ -102,6 +102,16 @@
                 return rotatedVertex;
             }
 
+            float ProximityFunction(float x)
+            {
+    // 限制输入到 [0, 1]
+    x = clamp(x, 0.0, 1.0);
+    // 使用指数曲线，调整为 f(0)=0, f(1)=2
+    float a = exp(5.0 * x) - 1.0; // 指数增长
+    return 2.0 * a / (exp(5.0) - 1.0); // 归一化到 f(1)=2
+}
+
+
             struct appdata
             {
                 uint vertexID : SV_VertexID;
@@ -130,23 +140,23 @@
                 _Height += grassInfoBuffer[v.instanceID].heightOffset;
                 _TopOffset += grassInfoBuffer[v.instanceID].topOffset;
                 float blend = grassInfoBuffer[v.instanceID].bend;
-                blend = 0; //临时代码！
 
                 float3 centerPoint = CubicBezier(GetP0(), GetP1(blend), GetP2(blend), GetP3(), color.g);
                 centerPoint.x += (vertex.x * (1 - color.g) * _Taper);
-
+                
                 //apply rotation
                 float rotateDeg = grassInfoBuffer[v.instanceID].rotationDeg;
                 centerPoint = RotateAroundY(centerPoint, rotateDeg);
                 
                 //appley wind speed;
                 float windDeg = grassInfoBuffer[v.instanceID].windDeg;
-                centerPoint = color.g == 0 ? centerPoint : RotateAroundY(centerPoint, windDeg);
                 float windRad = radians(windDeg);
-                float3 windDir = float3(cos(windRad), 0, sin(windRad)) * color.g * _WindForce;
+                float curve = exp(3.0 * color.g) - 1.0; 
+                curve /= (exp(3.0) - 1.0); 
+                float3 windDir = float3(cos(windRad), 0, sin(windRad)) * curve * _WindForce;
                 centerPoint += windDir;
                 //
-
+                
                 o.worldPos = grassWorldPos + centerPoint + _PositionOffset;
                 o.vertex = TransformWorldToHClip(o.worldPos); 
                 
