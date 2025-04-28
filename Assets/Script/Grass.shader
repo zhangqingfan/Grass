@@ -151,8 +151,8 @@
                 //appley wind speed;
                 float windDeg = grassInfoBuffer[v.instanceID].windDeg;
                 float windRad = radians(windDeg);
-                float curve = exp(3.0 * color.g) - 1.0; 
-                curve /= (exp(3.0) - 1.0); 
+                float curve = exp(5 * color.g) - 1.0; 
+                curve /= (exp(5) - 1.0); 
                 float3 windDir = float3(cos(windRad), 0, sin(windRad)) * curve * _WindForce;
                 centerPoint += windDir;
                 //

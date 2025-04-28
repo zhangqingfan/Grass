@@ -654,8 +654,8 @@ MonoBehaviour:
     y: 320
   windRT: {fileID: 2800000, guid: 66bbbaa872e919e4081751a337f6eaf7, type: 3}
   positionOffset: {x: 0, y: 0, z: 0}
-  windForce: 0
-  windSpeed: 0
+  windForce: 0.15
+  windSpeed: 0.14
   grassConfigList:
   - pullToCenter: 0
     heightOffset: 0.5
@@ -684,6 +684,7 @@ GameObject:
   - component: {fileID: 1899190796}
   - component: {fileID: 1899190795}
   - component: {fileID: 1899190794}
+  - component: {fileID: 1899190798}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -778,6 +779,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1899190798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899190793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50b36bc1d2ec92a438b410a8391f414c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderCamera: {fileID: 330585545}
+  tileNumber: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
