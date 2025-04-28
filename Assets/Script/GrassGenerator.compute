@@ -21,11 +21,11 @@ struct GrassInfo
     float bend;
 };
 
-uint _Range;
+float2 _GrassNumber;
+float3 _TileLeftBottomPosition;
 float _Spacing;
 float4x4 _VP_MATRIX;
 int grassConfigBufferCount;
-float3 _CameraPos;
 float _WindSpeed;
 float _Time;
 
@@ -74,32 +74,12 @@ float3 RotateVectorY(float3 direction, float angleDegrees)
     return normalize(rotated);
 }
 
-//TODO..
-float ChangeGrassFacing(float3 worldPos)
-{
-    float3 cameraDir = normalize(_CameraPos - worldPos);
-    float angleRad = atan2(cameraDir.z, cameraDir.x);
-    float angleDeg = degrees(angleRad);
-    
-    if(angleDeg > -30 && angleDeg < 30)
-    {
-        return angleDeg > 0 ? 30 : -30;
-    }
-    
-    else if (angleDeg > 150 || angleDeg < -150)
-    {
-        return angleDeg > 150 ? 150 : -150;
-    }
-    
-    return angleDeg;
-}
-
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    if(id.x < _Range && id.y < _Range)
+    if (id.x < _GrassNumber.x && id.y < _GrassNumber.y)
     {
-        float2 uv = float2(id.x, id.y) / float2(_Range, _Range);
+        float2 uv = float2(id.x, id.y) / float2(_GrassNumber.x, _GrassNumber.y);
         float4 col = voronoiRT.SampleLevel(sampler_voronoiRT, uv, 0);
         float2 centerPosUV = float2(col.g, col.b);
         
@@ -108,15 +88,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         GrassConfig config = grassConfigBuffer[idx];
         uv = lerp(uv, centerPosUV, config.pullToCenter);
         
-        float3 position = float3(uv.x * _Range * _Spacing, 0, uv.y * _Range * _Spacing);
+        float3 position = float3(uv.x * _GrassNumber.x * _Spacing, 0, uv.y * _GrassNumber.y * _Spacing) + _TileLeftBottomPosition;
         position.x += RandomRange(position.x + position.z, config.worldPosOffset);
         position.z += RandomRange(position.x - position.z, config.worldPosOffset);
         
         if (CameraCull(position) == true)
             return;
         
-        float2 centerPos = centerPosUV * _Range * _Spacing;
-        float3 sharedFacing = normalize(float3(Rand(centerPos.x), 0, Rand(centerPos.y)));
+        //float2 centerPos = centerPosUV * _TileSize * _Spacing;
+        //float3 sharedFacing = normalize(float3(Rand(centerPos.x), 0, Rand(centerPos.y)));
         //grassFacing = normalize(lerp(grassFacing, sharedFacing, config.sameDir)); //bug...
         //float rotationDeg = ChangeGrassFacing(position);
         float rotationDeg = RandomRange(position.x - position.z, 180);
