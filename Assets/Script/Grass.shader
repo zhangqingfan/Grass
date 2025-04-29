@@ -102,16 +102,6 @@
                 return rotatedVertex;
             }
 
-            float ProximityFunction(float x)
-            {
-    // 限制输入到 [0, 1]
-    x = clamp(x, 0.0, 1.0);
-    // 使用指数曲线，调整为 f(0)=0, f(1)=2
-    float a = exp(5.0 * x) - 1.0; // 指数增长
-    return 2.0 * a / (exp(5.0) - 1.0); // 归一化到 f(1)=2
-}
-
-
             struct appdata
             {
                 uint vertexID : SV_VertexID;
@@ -151,7 +141,7 @@
                 //appley wind speed;
                 float windDeg = grassInfoBuffer[v.instanceID].windDeg;
                 float windRad = radians(windDeg);
-                float curve = exp(5 * color.g) - 1.0; 
+                float curve = 2 * exp(5 * color.g) - 1.0; 
                 curve /= (exp(5) - 1.0); 
                 float3 windDir = float3(cos(windRad), 0, sin(windRad)) * curve * _WindForce;
                 centerPoint += windDir;
@@ -163,7 +153,8 @@
                 //todo....change place!
                 float3 tangent = CubicBezierTangent(GetP0(), GetP1(blend), GetP2(blend), GetP3(), color.g);
                 float3 normal = normalize(cross(tangent, float3(1,0,0)));
-                o.normal = TransformObjectToWorldNormal(normal);
+                o.normal = normalize(RotateAroundY(normal, rotateDeg));
+                //o.normal = TransformObjectToWorldNormal(normal);
                 
                 o.uv = uv;
                 return o;
