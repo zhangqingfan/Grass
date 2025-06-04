@@ -92,8 +92,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         position.x += RandomRange(position.x + position.z, config.worldPosOffset);
         position.z += RandomRange(position.x - position.z, config.worldPosOffset);
         
-        if (CameraCull(position) == true)
-            return;
+        //if (CameraCull(position) == true)
+         //   return;
         
         //float2 centerPos = centerPosUV * _TileSize * _Spacing;
         //float3 sharedFacing = normalize(float3(Rand(centerPos.x), 0, Rand(centerPos.y)));

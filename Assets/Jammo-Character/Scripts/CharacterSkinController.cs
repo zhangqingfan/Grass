@@ -10,7 +10,7 @@ public class CharacterSkinController : MonoBehaviour
     public Texture2D[] albedoList;
     [ColorUsage(true,true)]
     public Color[] eyeColors;
-    public enum EyePosition { normal, happy, angry, dead}
+    public enum EyePosition { normal, happy, angry, dead} 
     public EyePosition eyeState;
 
     // Start is called before the first frame update

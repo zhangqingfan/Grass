@@ -27,20 +27,19 @@ public class MovementInput : MonoBehaviour {
 		controller = this.GetComponent<CharacterController> ();
 	}
 	
-	// Update is called once per frame
 	void Update () 
 	{
 		InputMagnitude ();
     }
 
-    void PlayerMoveAndRotation() {
+    void PlayerMoveAndRotation() 
+	{
 		InputX = Input.GetAxis ("Horizontal");
 		InputZ = Input.GetAxis ("Vertical");
 
-		//todo...
 		var camera = Camera.main;
-		var forward = cam.transform.forward;
-		var right = cam.transform.right;
+		var forward = camera.transform.forward;
+		var right = camera.transform.right;
 
 		forward.y = 0f;
 		right.y = 0f;
@@ -48,10 +47,9 @@ public class MovementInput : MonoBehaviour {
 		forward.Normalize ();
 		right.Normalize ();
 
-		//TODO....
-		var  = forward * InputZ + right * InputX;
-		transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (desiredMoveDirection), desiredRotationSpeed);
-        controller.Move(desiredMoveDirection * Time.deltaTime * Velocity);
+		var move = forward * InputZ + right * InputX;
+		transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (move), desiredRotationSpeed);
+        controller.Move(move * Time.deltaTime * Velocity);
 	}
 
 	void InputMagnitude() 
